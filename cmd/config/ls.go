@@ -18,8 +18,11 @@ var lsCmd = &cobra.Command{
 	Long: `List all config values from the config file.
 
 Examples:
-  # Gets the default service name
-  osv config get service`,
+  # List all config names
+  kpv config ls
+  
+  # List config names matching a glob pattern
+  kpv config ls "keychain.*"`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 

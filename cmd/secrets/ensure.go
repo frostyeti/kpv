@@ -14,9 +14,11 @@ import (
 
 // ensureCmd represents the ensure command
 var ensureCmd = &cobra.Command{
-	Use:   "ensure <key>",
+	Use:   "ensure [key]",
 	Short: "Ensure a secret exists in KeePass vault, creating it if needed",
 	Long: `Get a secret from KeePass vault, or create it if it doesn't exist.
+
+The key can be provided as an argument or via the --key flag.
 
 If the secret already exists, its value is returned.
 If the secret does not exist, a new random secret is generated and stored.
@@ -41,7 +43,7 @@ Examples:
   kpv ensure --key my-secret -U -S
 
   # Ensure with custom characters
-  kpv ensure --key my-secret --chars "abc123!@#"
+  kpv ensure my-secret --chars "abc123!@#"
 
   # Use a specific vault
   kpv ensure --vault myvault --key my-secret`,

@@ -6,6 +6,9 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/frostyeti/go/dotenv"
 	"github.com/frostyeti/kpv/internal/utils"
@@ -113,7 +116,7 @@ Examples:
 
 		case "powershell", "pwsh":
 			for k, v := range values {
-				fmt.Printf("$Env:%s = '%s'\n", toScreamingSnakeCase(k), v)
+				fmt.Printf("$Env:%s='%s'\n", toScreamingSnakeCase(k), v)
 			}
 
 		case "dotenv", "env", ".env":
@@ -123,6 +126,89 @@ Examples:
 			}
 			fmt.Println(doc.String())
 
+		case "azure-pipelines", "ado", "azure-devops":
+			for k, v := range values {
+				fmt.Printf("##vso[task.setvariable variable=%s;]%s\n", toScreamingSnakeCase(k), v)
+			}
+
+		case "run", "runfile":
+			envFile := os.Getenv("RUN_SECRETS")
+			if envFile == "" {
+				utils.Failf("RUN_SECRETS environment variable is not set")
+				return
+			}
+
+			dir := filepath.Dir(envFile)
+			if err := os.MkdirAll(dir, 0700); err != nil {
+				utils.Failf("creating directory for RUN_ENV file failed: %v", err)
+				return
+			}
+
+			f, err := os.OpenFile(envFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+			if err != nil {
+				utils.Failf("opening RUN_SECRETS file failed: %v", err)
+				return
+			}
+			defer f.Close()
+
+			for k, v := range values {
+				if strings.ContainsAny(v, "\r\n") {
+					v2 := fmt.Sprintf("<< EOF\n%s\nEOF", v)
+					_, err := f.WriteString(fmt.Sprintf("%s%s\n", toScreamingSnakeCase(k), v2))
+					if err != nil {
+						utils.Failf("writing to GITHUB_ENV file failed: %v", err)
+						return
+					}
+				} else {
+					_, err := f.WriteString(fmt.Sprintf("%s=%s\n", toScreamingSnakeCase(k), v))
+					if err != nil {
+						utils.Failf("writing to GITHUB_ENV file failed: %v", err)
+						return
+					}
+				}
+			}
+
+		case "github", "gh-actions", "github-actions":
+			envFile := os.Getenv("GITHUB_ENV")
+			if envFile == "" {
+				utils.Failf("GITHUB_ENV environment variable is not set")
+				return
+			}
+
+			dir := filepath.Dir(envFile)
+			if err := os.MkdirAll(dir, 0700); err != nil {
+				utils.Failf("creating directory for GITHUB_ENV file failed: %v", err)
+				return
+			}
+
+			f, err := os.OpenFile(envFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+			if err != nil {
+				utils.Failf("opening GITHUB_ENV file failed: %v", err)
+				return
+			}
+			defer f.Close()
+
+			for k, v := range values {
+				if strings.ContainsAny(v, "\r\n") {
+					v2 := fmt.Sprintf("<< EOF\n%s\nEOF", v)
+					_, err := f.WriteString(fmt.Sprintf("%s%s\n", toScreamingSnakeCase(k), v2))
+					if err != nil {
+						utils.Failf("writing to GITHUB_ENV file failed: %v", err)
+						return
+					}
+				} else {
+					_, err := f.WriteString(fmt.Sprintf("%s=%s\n", toScreamingSnakeCase(k), v))
+					if err != nil {
+						utils.Failf("writing to GITHUB_ENV file failed: %v", err)
+						return
+					}
+				}
+
+				fmt.Fprintf(os.Stdout, "::add-mask::%s", v)
+			}
+
+		case "text":
+			fallthrough
 		default:
 			for _, v := range values {
 				fmt.Println(v)
@@ -134,5 +220,5 @@ Examples:
 func init() {
 
 	getCmd.Flags().StringSliceP("key", "k", []string{}, "Name of secret(s) to get (can be specified multiple times)")
-	getCmd.Flags().StringP("format", "f", "text", "Output format (text, json, sh, bash, zsh, powershell, pwsh, dotenv)")
+	getCmd.Flags().StringP("format", "f", "text", "Output format (text, json, sh, bash, zsh, powershell, pwsh, dotenv, azure-devops, github-actions, run)")
 }

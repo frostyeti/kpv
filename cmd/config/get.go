@@ -19,7 +19,7 @@ var getCmd = &cobra.Command{
 
 Examples:
   # Gets the default service name
-  osv config get service`,
+  kpv config get service`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 

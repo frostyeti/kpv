@@ -4,6 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -20,6 +21,7 @@ type SecretImport struct {
 	URL      string                  `json:"url,omitempty"`
 	Notes    string                  `json:"notes,omitempty"`
 	Strings  map[string]CustomString `json:"strings,omitempty"`
+	Binaries map[string]CustomString `json:"binaries,omitempty"`
 
 	// Secret generation options
 	Ensure    bool   `json:"ensure,omitempty"`    // If true and value is empty and doesn't exist, generate secret
@@ -86,7 +88,12 @@ Example JSON format:
           "value": "sk-1234567890",
           "encrypted": true
         }
-      }
+      },
+	  "binaries": {
+	     "file.pfx": {
+			"value": "BASE64_ENCODED_DATA_HERE",
+			"encrypted": true 			
+		 }
     },
     "generated-secret": {
       "ensure": true,
@@ -244,6 +251,44 @@ Example JSON format:
 						entry.SetProtectedValue(k, v.Value)
 					} else {
 						entry.SetValue(k, v.Value)
+					}
+				}
+
+				for k, v := range secretImport.Binaries {
+					encoded := v.Value
+					data, err := base64.StdEncoding.DecodeString(encoded)
+					if err != nil {
+						utils.Errf("decoding binary %s for secret %s failed: %v\n", k, name, err)
+						continue
+					}
+
+					found := false
+
+					for _, be := range entry.Binaries {
+						if be.Name == k {
+							// Update existing binary
+							binary := kdbx.FindBinary(be.Value.ID)
+							if binary != nil {
+								binary.SetContent(data)
+								if v.Encrypted {
+									binary.MemoryProtection = 1
+								} else {
+									binary.MemoryProtection = 0
+								}
+							}
+							found = true
+						}
+					}
+
+					if !found {
+						// Add new binary
+						binary := kdbx.AddBinary(data)
+						if v.Encrypted {
+							binary.MemoryProtection = 1
+						} else {
+							binary.MemoryProtection = 0
+						}
+						entry.Binaries = append(entry.Binaries, binary.CreateReference(name))
 					}
 				}
 			})

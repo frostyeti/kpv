@@ -14,7 +14,26 @@ import (
 var setCmd = &cobra.Command{
 	Use:   "set <path> [secret]",
 	Short: "set the secret for a keepass db in the os secret store",
-	Long:  `Set the secret for a keepass db in the os secret store.`,
+	Long: `Set the secret for a keepass db in the os secret store.
+
+The secret is used to unlock the keepass db when opening it.
+
+Examples:
+  # Set secret using inline value
+  kpv config secret set kpv:///path/to/vault.kdbx "mysecret"
+
+  # Set secret from a file
+  kpv config secret set kpv:///path/to/vault.kdbx --file ./secret.txt
+
+  # Set secret from an environment variable
+  kpv config secret set kpv:///path/to/vault.kdbx --env MY_SECRET_ENV
+
+  # Set secret from stdin
+  echo  "mysecret" | kpv config secret set kpv:///path/to/vault.kdbx --stdin
+
+  # Set secret for a file path (file://)
+  kpv config secret set file:///path/to/vault.kdbx "mysecret"
+	`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		value := ""
@@ -42,14 +61,16 @@ var setCmd = &cobra.Command{
 
 			path = "kpv:///" + path
 		}
-
+		inlineValue, _ := cmd.Flags().GetString("value")
 		file, _ := cmd.Flags().GetString("file")
 		stdin, _ := cmd.Flags().GetBool("stdin")
 		envVar, _ := cmd.Flags().GetString("env")
 		prompt, _ := cmd.Flags().GetBool("prompt")
 
 		if value == "" {
-			if file != "" {
+			if inlineValue != "" {
+				value = inlineValue
+			} else if file != "" {
 				data, err := os.ReadFile(file)
 				if err != nil {
 					utils.Failf("reading secret from file: %v", err)
@@ -112,6 +133,7 @@ var setCmd = &cobra.Command{
 }
 
 func init() {
+	setCmd.Flags().StringP("value", "v", "", "The secret value (exclusive with --file, --env, --stdin, --generate)")
 	setCmd.Flags().StringP("file", "f", "", "Path to a file containing the secret to set")
 	setCmd.Flags().BoolP("stdin", "s", false, "Read the secret from stdin")
 	setCmd.Flags().StringP("env", "e", "", "Read the secret from the specified environment variable")

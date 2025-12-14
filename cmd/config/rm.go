@@ -18,18 +18,23 @@ var rmCmd = &cobra.Command{
 
 Examples:
   # Gets the default service name
-  osv config set <key> <value>
+  kpv config rm service
   
-  osv config set service myservice`,
+  kpv config rm --key service
+  
+  `,
 
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if len(args) != 1 {
-			utils.Fail("key must be provided")
-			return
+		key := ""
+		if len(args) > 0 {
+			key = args[0]
 		}
 
-		key := args[0]
+		keyInline, _ := cmd.Flags().GetString("key")
+		if keyInline != "" {
+			key = keyInline
+		}
 
 		if key == "" {
 			utils.Fail("key must be not be empty")
@@ -60,4 +65,5 @@ Examples:
 
 func init() {
 	ConfigCmd.AddCommand(rmCmd)
+	rmCmd.Flags().StringP("key", "k", "", "The config key to remove (exclusive with positional argument)")
 }

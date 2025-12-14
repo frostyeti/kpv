@@ -77,8 +77,8 @@ func (c *Config) Parse(input string) {
 			key := strings.TrimSpace(line[:eqIndex])
 			value := strings.TrimSpace(line[eqIndex+1:])
 
-			if strings.HasSuffix(value, "=EOF") {
-				value = strings.TrimSuffix(value, "=EOF")
+			if strings.HasSuffix(value, "<< EOF") {
+				value = strings.TrimSuffix(value, "<< EOF")
 				value = strings.TrimSpace(value)
 				c.Set(key, value)
 			} else if value == "EOF" {
@@ -223,7 +223,7 @@ func (c *Config) String() string {
 		case SINGLE_LINE_VALUE:
 			builder.WriteString(item.Key + "=" + item.Value + "\n")
 		case MULTI_LINE_VALUE:
-			builder.WriteString(item.Key + "=EOF\n" + item.Value + "\nEOF\n")
+			builder.WriteString(item.Key + "<< EOF\n" + item.Value + "\nEOF\n")
 		}
 	}
 	return builder.String()

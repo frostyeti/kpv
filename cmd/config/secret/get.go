@@ -11,8 +11,25 @@ import (
 
 var getCmd = &cobra.Command{
 	Use:   "get <path>",
-	Short: "get the secret for a keepass db from the os secret store",
-	Long:  `Get the secret for a keepass db from the os secret store.`,
+	Short: "Gets the secret for a keepass db from the os secret store",
+	Long: `Gets the secret for a keepass db from the os secret store.
+	
+The secret is used to unlock the keepass db when opening it.
+
+Examples:
+  # Get secret for a keepass db
+  kpv config secret get kpv:///path/to/vault.kdbx
+
+  # Get secret for a file path (file://)
+  kpv config secret get file:///path/to/vault.kdbx
+
+  # Get secret for an absolute file path
+  kpv config secret get /path/to/vault.kdbx
+
+  # Get secret for a relative file path
+  kpv config secret get ./vault.kdbx
+
+	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			cmd.Help()

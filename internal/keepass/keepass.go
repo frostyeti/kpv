@@ -326,6 +326,14 @@ func (kdbx *Kdbx) Save() error {
 	return nil
 }
 
+func (kdbx *Kdbx) AddBinary(data []byte) *gokeepasslib.Binary {
+	return kdbx.db.AddBinary(data)
+}
+
+func (kdbx *Kdbx) FindBinary(id int) *gokeepasslib.Binary {
+	return kdbx.db.FindBinary(id)
+}
+
 func (kdbx *Kdbx) GetBinaries() *gokeepasslib.Binaries {
 	if kdbx == nil || kdbx.db == nil {
 		return nil

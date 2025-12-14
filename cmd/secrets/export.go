@@ -4,6 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -21,16 +22,19 @@ type SecretExport struct {
 	Notes    string                  `json:"notes,omitempty"`
 	Strings  map[string]CustomString `json:"strings,omitempty"`
 	Tags     map[string]string       `json:"tags,omitempty"`
+	Binaries map[string]CustomString `json:"binaries,omitempty"`
 }
 
 // exportCmd represents the export command
 var exportCmd = &cobra.Command{
 	Use:   "export",
 	Short: "Export secrets from KeePass vault to JSON",
-	Long: `Export all entries from a KeePass vault to a JSON file.
+	Long: `Export all entries string from a KeePass vault to a JSON file.
 
 Note: Currently only supports JSON export format. Support for exporting to
 other KeePass files (.kdbx) will be added in a future release.
+
+The exported JSON will
 
 The exported JSON file contains an object where each property represents a secret.
 Each secret value is an object containing:
@@ -42,6 +46,10 @@ Each secret value is an object containing:
     Each custom field is an object with:
     - value: The field value
     - encrypted: Whether the field is encrypted/protected
+  - binaries: Attached binary files (optional)
+	Each binary is an object with:
+	- value: Base64-encoded binary data
+	- encrypted: Whether the binary is encrypted/protected
   - tags: KeePass tags (optional, values are empty strings)
 
 Examples:
@@ -88,6 +96,7 @@ Examples:
 
 		// Iterate through all entries
 		for _, entry := range root.Entries {
+
 			title := entry.GetTitle()
 			if title == "" {
 				continue
@@ -143,6 +152,28 @@ Examples:
 				}
 				if len(export.Tags) == 0 {
 					export.Tags = nil
+				}
+			}
+
+			if len(entry.Binaries) > 0 {
+				export.Binaries = make(map[string]CustomString)
+				for _, binaryEntry := range entry.Binaries {
+					binary := kdbx.GetBinaries().Find(binaryEntry.Value.ID)
+					if binary != nil {
+						data, err := binary.GetContentBytes()
+						if err != nil {
+							cmd.PrintErrf("Error retrieving binary %s for entry %s: %v\n", binaryEntry.Name, title, err)
+							return
+						}
+						encoded := base64.StdEncoding.EncodeToString(data)
+						export.Binaries[binaryEntry.Name] = CustomString{
+							Value:     encoded,
+							Encrypted: binary.MemoryProtection == 1,
+						}
+					}
+				}
+				if len(export.Binaries) == 0 {
+					export.Binaries = nil
 				}
 			}
 

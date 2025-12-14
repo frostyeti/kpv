@@ -52,7 +52,7 @@ Examples:
 		field, _ := cmd.Flags().GetString("field")
 		value, _ := cmd.Flags().GetString("value")
 		file, _ := cmd.Flags().GetString("file")
-		varName, _ := cmd.Flags().GetString("var")
+		varName, _ := cmd.Flags().GetString("env")
 		stdin, _ := cmd.Flags().GetBool("stdin")
 		protected, _ := cmd.Flags().GetBool("protected")
 
@@ -170,10 +170,10 @@ func init() {
 	secretsCmd.AddCommand(setStringCmd)
 
 	setStringCmd.Flags().StringP("key", "k", "", "The secret name/key (required)")
-	setStringCmd.Flags().StringP("field", "f", "", "The custom field name to set (required)")
+	setStringCmd.Flags().StringP("field", "z", "", "The custom field name to set (required)")
 	setStringCmd.Flags().StringP("value", "v", "", "The value to set")
-	setStringCmd.Flags().String("file", "", "Read value from a file")
-	setStringCmd.Flags().String("var", "", "Read value from an environment variable")
-	setStringCmd.Flags().Bool("stdin", false, "Read value from stdin")
+	setStringCmd.Flags().StringP("file", "f", "", "Read value from a file")
+	setStringCmd.Flags().StringP("env", "e", "", "Read value from an environment variable")
+	setStringCmd.Flags().BoolP("stdin", "s", false, "Read value from stdin")
 	setStringCmd.Flags().BoolP("protected", "p", false, "Store the value as protected (encrypted)")
 }

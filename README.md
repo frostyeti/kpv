@@ -83,7 +83,13 @@ Examples:
 - `kpv secrets ensure my-secret`
 
 Generation options:
-- `--size` (default 16), `-U, --no-upper`, `-L, --no-lower`, `-D, --no-digits`, `-S, --no-special`, `--special`, `--chars`
+- `--size` (default 16) - sets the length of the generated secret. 
+- `-U, --no-upper` - disables using upper english characters.
+- `-L, --no-lower` - disables using lower english characters.
+- `-D, --no-digits` - disables using digits.
+- `-S, --no-special` - disables special characters/symbols.
+- `--special <special>` - set the special symbols that are used.
+- `--chars <chars>` - mutually exclusive with the other character options.
 
 ### `kpv secrets get`
 
@@ -92,7 +98,8 @@ Get one or more secrets by key.
 Examples:
 - Single: `kpv secrets get --key my-secret`
 - Multiple: `kpv secrets get --key secret1 --key secret2`
-- Formats: `json`, `sh|bash|zsh`, `pwsh|powershell`, `dotenv`, `null`, default `text`
+- Formats: `json`, `sh|bash|zsh`, `pwsh|powershell`, `dotenv`, `null`, 
+  `azure-devops`, `github-actions`, `run`, and the default `text`.
 
 Flags:
 - `-k, --key` Secret key (repeatable)
@@ -117,10 +124,21 @@ Flags:
 Create or update a secret value.
 
 Input methods (mutually exclusive; if none given, `--generate` is assumed):
-- `--value`, `--file`, `--var`, `--stdin`, `--generate`
+- `--value` - sets the value on the command line. Should only be used by a script. 
+- `--file` - sets the value using the file provided
+- `--env` - sets the value using the environment variable given.
+- `--stdin` - sets the value using Standard Input.
+- `--generate` - generate the value using a cryptographically secure secret generator.
 
 Generation options:
-- `--size` (default 16), `--no-upper`, `--no-lower`, `--no-digits`, `--no-special`, `--special`, `--chars`
+- `--size` (default 16), 
+- `-U, --no-upper` - disables using upper english characters.
+- `-L, --no-lower` - disables using lower english characters.
+- `-D, --no-digits` - disables using digits.
+- `-S, --no-special` - disables special characters/symbols.
+- `--special <special>` - set the special symbols that are used.
+- `--chars <chars>` - mutually exclusive with the other character options.
+
 
 Examples:
 - `kpv secrets set --key my-secret --value "secret-value"`
@@ -139,9 +157,14 @@ Examples:
 - Protected: `kpv secrets set-string --key my-secret --field token --value "xyz" --protected`
 
 Flags:
-- `-k, --key` Entry title
-- `-f, --field` Custom field name
-- `-v, --value`, `--file`, `--var`, `--stdin`, `-p, --protected`
+- `-k, --key` - The full path to the entry including groups using forward
+  slashes e.g. group1/next-group/entry-name
+- `-f, --field` - The custom string field name.
+- `-v, --value` - The value. This should only be used in a script.
+- `--file` - Sets the value by reading it from the given file.
+- `--env`  - Sets the value using the given environment variable
+- `--stdin` - Sets the value using the Standard Input. Useful for piping the value.
+- `-p, --protected` - Instructs keepass to protect the value by encrypting it.
 
 ### `kpv secrets ls`
 

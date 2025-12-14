@@ -58,7 +58,7 @@ Examples:
 		key, _ := cmd.Flags().GetString("key")
 		value, _ := cmd.Flags().GetString("value")
 		file, _ := cmd.Flags().GetString("file")
-		varName, _ := cmd.Flags().GetString("var")
+		varName, _ := cmd.Flags().GetString("env")
 		stdin, _ := cmd.Flags().GetBool("stdin")
 		generate, _ := cmd.Flags().GetBool("generate")
 
@@ -202,12 +202,11 @@ func init() {
 
 	setCmd.Flags().StringP("key", "k", "", "The name of the secret to set (required)")
 
-	setCmd.Flags().String("value", "", "The secret value (exclusive with --file, --var, --stdin, --generate)")
-	setCmd.Flags().String("file", "", "Path to file containing the secret value (exclusive with --value, --var, --stdin, --generate)")
-	setCmd.Flags().String("var", "", "Environment variable name containing the secret value (exclusive with --value, --file, --stdin, --generate)")
-	setCmd.Flags().Bool("stdin", false, "Read the secret value from stdin (exclusive with --value, --file, --var, --generate)")
-	setCmd.Flags().BoolP("generate", "g", false, "Generate a random secret value (exclusive with --value, --file, --var, --stdin)")
-
+	setCmd.Flags().StringP("value", "v", "", "The secret value (exclusive with --file, --env, --stdin, --generate)")
+	setCmd.Flags().StringP("file", "f", "", "Path to file containing the secret value (exclusive with --value, --env, --stdin, --generate)")
+	setCmd.Flags().StringP("env", "e", "", "Environment variable name containing the secret value (exclusive with --value, --file, --stdin, --generate)")
+	setCmd.Flags().BoolP("stdin", "s", false, "Read the secret value from stdin (exclusive with --value, --file, --env, --generate)")
+	setCmd.Flags().BoolP("generate", "g", false, "Generate a random secret value (exclusive with --value, --file, --env, --stdin)")
 	// Generation options
 	setCmd.Flags().Int("size", 16, "Size of the generated secret in characters")
 	setCmd.Flags().BoolP("no-upper", "U", false, "Exclude uppercase letters from generated secret")
