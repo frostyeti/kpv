@@ -1,0 +1,20 @@
+shell: bash
+env:
+  XTASK_USE_GIT_BASH: "true"
+  XTASK_GIT_BIN: "c:/Program Files/Git/usr/bin"
+
+tasks:
+
+  test:
+    run: go test -v ./...
+
+  build:
+    run: go build -v ./...
+
+  tidy:
+    run: go mod tidy
+
+  ci: 
+    needs: [tidy, build, test]
+    run: |
+      echo "done"

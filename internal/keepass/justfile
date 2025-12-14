@@ -1,0 +1,19 @@
+bash := if os_family() == 'windows' {
+    'C:\\PROGRA~1\Git\\usr\\bin\\bash.exe'
+} else {
+    '/usr/bin/env bash'
+}
+
+test:
+    go test ./...
+
+
+tag version:
+    #!{{bash}}
+    version="{{version}}"
+    if [ -z "$version" ]; then
+        echo "Usage: just tag <version>"
+        exit 1
+    fi
+    git tag -a "keepass/v$version" -m "Release v$version"
+    git push origin "keepass/v$version"
