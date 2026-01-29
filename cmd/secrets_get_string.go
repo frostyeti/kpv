@@ -10,8 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getStringCmd represents the get-string command
-var getStringCmd = &cobra.Command{
+// secretsGetStringCmd represents the get-string command
+var secretsGetStringCmd = &cobra.Command{
 	Use:   "get-string",
 	Short: "Get a custom string field from a KeePass entry",
 	Long: `Get a custom string field from a KeePass entry.
@@ -81,6 +81,6 @@ Examples:
 
 func init() {
 
-	getStringCmd.Flags().StringP("key", "k", "", "The secret name/key (required)")
-	getStringCmd.Flags().StringP("field", "f", "", "The custom field name to retrieve (required)")
+	secretsGetStringCmd.Flags().StringP("key", "k", "", "The secret name/key (required)")
+	secretsGetStringCmd.Flags().StringP("field", "f", "", "The custom field name to retrieve (required)")
 }

@@ -4,4 +4,5 @@ go = "1.25.5"
 [tasks.build]
 run = """
     go build -o bin/kpv ./main.go
+    cp bin/kpv $HOME/.local/bin
 """

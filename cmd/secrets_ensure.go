@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ensureCmd represents the ensure command
-var ensureCmd = &cobra.Command{
+// secretsEnsureCmd represents the ensure command
+var secretsEnsureCmd = &cobra.Command{
 	Use:   "ensure [key]",
 	Short: "Ensure a secret exists in KeePass vault, creating it if needed",
 	Long: `Get a secret from KeePass vault, or create it if it doesn't exist.
@@ -107,16 +107,16 @@ Examples:
 }
 
 func init() {
-	secretsCmd.AddCommand(ensureCmd)
+	secretsCmd.AddCommand(secretsEnsureCmd)
 
-	ensureCmd.Flags().StringP("key", "k", "", "The name of the secret to ensure (required)")
+	secretsEnsureCmd.Flags().StringP("key", "k", "", "The name of the secret to ensure (required)")
 
 	// Generation options (same as set command)
-	ensureCmd.Flags().Int("size", 16, "Size of the generated secret in characters")
-	ensureCmd.Flags().BoolP("no-upper", "U", false, "Exclude uppercase letters from generated secret")
-	ensureCmd.Flags().BoolP("no-lower", "L", false, "Exclude lowercase letters from generated secret")
-	ensureCmd.Flags().BoolP("no-digits", "D", false, "Exclude digits from generated secret")
-	ensureCmd.Flags().BoolP("no-special", "S", false, "Exclude special characters from generated secret")
-	ensureCmd.Flags().String("special", "", "Custom special characters to use (default: @_-{}|#!~:^)")
-	ensureCmd.Flags().String("chars", "", "Use only these specific characters (overrides all other character options)")
+	secretsEnsureCmd.Flags().Int("size", 16, "Size of the generated secret in characters")
+	secretsEnsureCmd.Flags().BoolP("no-upper", "U", false, "Exclude uppercase letters from generated secret")
+	secretsEnsureCmd.Flags().BoolP("no-lower", "L", false, "Exclude lowercase letters from generated secret")
+	secretsEnsureCmd.Flags().BoolP("no-digits", "D", false, "Exclude digits from generated secret")
+	secretsEnsureCmd.Flags().BoolP("no-special", "S", false, "Exclude special characters from generated secret")
+	secretsEnsureCmd.Flags().String("special", "", "Custom special characters to use (default: @_-{}|#!~:^)")
+	secretsEnsureCmd.Flags().String("chars", "", "Use only these specific characters (overrides all other character options)")
 }

@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// setStringCmd represents the set-string command
-var setStringCmd = &cobra.Command{
+// secretsSetStringCmd represents the set-string command
+var secretsSetStringCmd = &cobra.Command{
 	Use:   "set-string",
 	Short: "Set a custom string field on a KeePass entry",
 	Long: `Set a custom string field on a KeePass entry.
@@ -167,13 +167,13 @@ Examples:
 }
 
 func init() {
-	secretsCmd.AddCommand(setStringCmd)
+	secretsCmd.AddCommand(secretsSetStringCmd)
 
-	setStringCmd.Flags().StringP("key", "k", "", "The secret name/key (required)")
-	setStringCmd.Flags().StringP("field", "z", "", "The custom field name to set (required)")
-	setStringCmd.Flags().StringP("value", "v", "", "The value to set")
-	setStringCmd.Flags().StringP("file", "f", "", "Read value from a file")
-	setStringCmd.Flags().StringP("env", "e", "", "Read value from an environment variable")
-	setStringCmd.Flags().BoolP("stdin", "s", false, "Read value from stdin")
-	setStringCmd.Flags().BoolP("protected", "p", false, "Store the value as protected (encrypted)")
+	secretsSetStringCmd.Flags().StringP("key", "k", "", "The secret name/key (required)")
+	secretsSetStringCmd.Flags().StringP("field", "z", "", "The custom field name to set (required)")
+	secretsSetStringCmd.Flags().StringP("value", "v", "", "The value to set")
+	secretsSetStringCmd.Flags().StringP("file", "f", "", "Read value from a file")
+	secretsSetStringCmd.Flags().StringP("env", "e", "", "Read value from an environment variable")
+	secretsSetStringCmd.Flags().BoolP("stdin", "s", false, "Read value from stdin")
+	secretsSetStringCmd.Flags().BoolP("protected", "p", false, "Store the value as protected (encrypted)")
 }

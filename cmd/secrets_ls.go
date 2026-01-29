@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// lsCmd represents the ls command
-var lsCmd = &cobra.Command{
+// secretsLsCmd represents the ls command
+var secretsLsCmd = &cobra.Command{
 	Use:     "ls [filter]",
 	Aliases: []string{"list"},
 	Short:   "List secrets in KeePass vault",
@@ -101,5 +101,5 @@ Examples:
 }
 
 func init() {
-	secretsCmd.AddCommand(lsCmd)
+	secretsCmd.AddCommand(secretsLsCmd)
 }

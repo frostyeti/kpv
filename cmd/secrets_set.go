@@ -13,8 +13,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// setCmd represents the set command
-var setCmd = &cobra.Command{
+// secretsSetCmd represents the set command
+var secretsSetCmd = &cobra.Command{
 	Use:   "set [<key>] [<value>]",
 	Short: "Set a secret in KeePass vault",
 	Long: `Set a single secret value in a KeePass vault.
@@ -198,24 +198,24 @@ func generateSecret(cmd *cobra.Command) (string, error) {
 }
 
 func init() {
-	secretsCmd.AddCommand(setCmd)
+	secretsCmd.AddCommand(secretsSetCmd)
 
-	setCmd.Flags().StringP("key", "k", "", "The name of the secret to set (required)")
+	secretsSetCmd.Flags().StringP("key", "k", "", "The name of the secret to set (required)")
 
-	setCmd.Flags().StringP("value", "v", "", "The secret value (exclusive with --file, --env, --stdin, --generate)")
-	setCmd.Flags().StringP("file", "f", "", "Path to file containing the secret value (exclusive with --value, --env, --stdin, --generate)")
-	setCmd.Flags().StringP("env", "e", "", "Environment variable name containing the secret value (exclusive with --value, --file, --stdin, --generate)")
-	setCmd.Flags().BoolP("stdin", "s", false, "Read the secret value from stdin (exclusive with --value, --file, --env, --generate)")
-	setCmd.Flags().BoolP("generate", "g", false, "Generate a random secret value (exclusive with --value, --file, --env, --stdin)")
+	secretsSetCmd.Flags().StringP("value", "v", "", "The secret value (exclusive with --file, --env, --stdin, --generate)")
+	secretsSetCmd.Flags().StringP("file", "f", "", "Path to file containing the secret value (exclusive with --value, --env, --stdin, --generate)")
+	secretsSetCmd.Flags().StringP("env", "e", "", "Environment variable name containing the secret value (exclusive with --value, --file, --stdin, --generate)")
+	secretsSetCmd.Flags().BoolP("stdin", "s", false, "Read the secret value from stdin (exclusive with --value, --file, --env, --generate)")
+	secretsSetCmd.Flags().BoolP("generate", "g", false, "Generate a random secret value (exclusive with --value, --file, --env, --stdin)")
 	// Generation options
-	setCmd.Flags().Int("size", 16, "Size of the generated secret in characters")
-	setCmd.Flags().BoolP("no-upper", "U", false, "Exclude uppercase letters from generated secret")
-	setCmd.Flags().BoolP("no-lower", "L", false, "Exclude lowercase letters from generated secret")
-	setCmd.Flags().BoolP("no-digits", "D", false, "Exclude digits from generated secret")
-	setCmd.Flags().BoolP("no-special", "S", false, "Exclude special characters from generated secret")
-	setCmd.Flags().String("special", "", "Custom special characters to use (default: @_-{}|#!~:^)")
-	setCmd.Flags().String("chars", "", "Use only these specific characters (overrides all other character options)")
+	secretsSetCmd.Flags().Int("size", 16, "Size of the generated secret in characters")
+	secretsSetCmd.Flags().BoolP("no-upper", "U", false, "Exclude uppercase letters from generated secret")
+	secretsSetCmd.Flags().BoolP("no-lower", "L", false, "Exclude lowercase letters from generated secret")
+	secretsSetCmd.Flags().BoolP("no-digits", "D", false, "Exclude digits from generated secret")
+	secretsSetCmd.Flags().BoolP("no-special", "S", false, "Exclude special characters from generated secret")
+	secretsSetCmd.Flags().String("special", "", "Custom special characters to use (default: @_-{}|#!~:^)")
+	secretsSetCmd.Flags().String("chars", "", "Use only these specific characters (overrides all other character options)")
 
 	// Mark the flags as mutually exclusive
-	setCmd.MarkFlagsMutuallyExclusive("value", "file", "var", "stdin", "generate")
+	secretsSetCmd.MarkFlagsMutuallyExclusive("value", "file", "stdin", "generate")
 }

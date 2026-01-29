@@ -34,8 +34,8 @@ type SecretSync struct {
 	Chars     string `json:"chars,omitempty"`     // Custom character set (overrides all other options)
 }
 
-// syncCmd represents the sync command
-var syncCmd = &cobra.Command{
+// secretsSyncCmd represents the sync command
+var secretsSyncCmd = &cobra.Command{
 	Use:   "sync",
 	Short: "Sync secrets to KeePass vault, updating only when values differ",
 	Long: `Sync secrets to a KeePass vault from a JSON file.
@@ -390,10 +390,10 @@ Example JSON format:
 }
 
 func init() {
-	secretsCmd.AddCommand(syncCmd)
+	secretsCmd.AddCommand(secretsSyncCmd)
 
-	syncCmd.Flags().Bool("json", false, "Sync using JSON format (required for now)")
-	syncCmd.Flags().StringP("file", "f", "", "Input JSON file path")
-	syncCmd.Flags().Bool("stdin", false, "Read JSON from stdin")
-	syncCmd.Flags().Bool("dry-run", false, "Show what would be changed without making changes")
+	secretsSyncCmd.Flags().Bool("json", false, "Sync using JSON format (required for now)")
+	secretsSyncCmd.Flags().StringP("file", "f", "", "Input JSON file path")
+	secretsSyncCmd.Flags().Bool("stdin", false, "Read JSON from stdin")
+	secretsSyncCmd.Flags().Bool("dry-run", false, "Show what would be changed without making changes")
 }

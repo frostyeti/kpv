@@ -14,8 +14,8 @@ import (
 	"github.com/frostyeti/kpv/internal/utils"
 )
 
-// rmCmd represents the rm command
-var rmCmd = &cobra.Command{
+// secretsRmCmd represents the rm command
+var secretsRmCmd = &cobra.Command{
 	Use:     "rm",
 	Aliases: []string{"remove"},
 	Short:   "Remove one or more secrets from KeePass vault",
@@ -110,10 +110,10 @@ Examples:
 }
 
 func init() {
-	secretsCmd.AddCommand(rmCmd)
+	secretsCmd.AddCommand(secretsRmCmd)
 
-	rmCmd.Flags().StringSliceP("key", "k", []string{}, "Name of secret(s) to remove (can be specified multiple times)")
-	rmCmd.MarkFlagRequired("key")
+	secretsRmCmd.Flags().StringSliceP("key", "k", []string{}, "Name of secret(s) to remove (can be specified multiple times)")
+	secretsRmCmd.MarkFlagRequired("key")
 
-	rmCmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt")
+	secretsRmCmd.Flags().BoolP("yes", "y", false, "Skip confirmation prompt")
 }

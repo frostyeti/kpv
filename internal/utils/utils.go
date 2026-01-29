@@ -13,61 +13,37 @@ import (
 	"github.com/frostyeti/go/secrets"
 	"github.com/frostyeti/kpv/internal/keepass"
 
-	"github.com/frostyeti/kpv/internal/kvconf"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var cachedConf *kvconf.Config
+var initialized = false
 
-func GetConfileFile() (string, error) {
-	configFile := os.Getenv("KPV_CONFIG_FILE")
-	if configFile != "" {
-		return configFile, nil
+func LoadConfig() error {
+	if initialized {
+		return nil
 	}
+	initialized = true
 
-	configDir := os.Getenv("KPV_CONFIG_DIR")
-	if configDir != "" {
-		return filepath.Join(configDir, "kpv.kvc"), nil
-	}
-
-	home, err := os.UserConfigDir()
-	if err != nil {
-		home, err := os.UserHomeDir()
+	configDir, _ := os.UserConfigDir()
+	config := filepath.Join(configDir, "kpv", "kpv.json")
+	if _, err := os.Stat(config); os.IsNotExist(err) {
+		data := []byte("{}")
+		err := os.MkdirAll(filepath.Dir(config), 0700)
 		if err != nil {
-			return "", errors.New("unable to determine user home directory for config file")
+			return err
 		}
-
-		if runtime.GOOS == "windows" {
-			configDir = filepath.Join(home, "AppData", "Roaming", "kpv")
-		} else {
-			configDir = filepath.Join(home, ".config", "kpv")
+		err = os.WriteFile(config, data, 0600)
+		if err != nil {
+			return err
 		}
-
-		return filepath.Join(configDir, "kpv.kvc"), nil
 	}
 
-	return filepath.Join(home, "kpv", "kpv.kvc"), nil
-}
+	viper.SetConfigName("kpv")
+	viper.AddConfigPath(filepath.Join(configDir, "kpv"))
 
-func GetConfig() (*kvconf.Config, error) {
-	if cachedConf != nil {
-		return cachedConf, nil
-	}
-
-	configFile, err := GetConfileFile()
-	if err != nil {
-		return nil, err
-	}
-
-	conf := kvconf.NewConfig()
-
-	err = conf.Load(configFile)
-	if err != nil {
-		return nil, err
-	}
-
-	cachedConf = conf
-	return conf, nil
+	// Find and read the config file
+	return viper.ReadInConfig()
 }
 
 type ResolvedPath struct {
@@ -125,36 +101,8 @@ func Okf(format string, args ...interface{}) {
 }
 
 func SetAlias(name, path string) error {
-	conf, err := GetConfig()
-	if err != nil {
-		return err
-	}
-
-	aliases, _ := conf.Get("aliases")
-	lines := []string{}
-	if aliases != "" {
-		lines = strings.Split(aliases, "\n")
-	}
-
-	updated := false
-	for i, line := range lines {
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) == 2 {
-			existingName := strings.TrimSpace(parts[0])
-			if strings.EqualFold(existingName, name) {
-				lines[i] = fmt.Sprintf("%s=%s", name, path)
-				updated = true
-				break
-			}
-		}
-	}
-
-	if !updated {
-		lines = append(lines, fmt.Sprintf("%s=%s", name, path))
-	}
-
-	conf.Set("aliases", strings.Join(lines, "\n"))
-	return conf.Save()
+	viper.Set("aliases."+name, path)
+	return viper.WriteConfig()
 }
 
 func ResolveVaultPath(vault string) (ResolvedPath, error) {
@@ -171,11 +119,11 @@ func ResolveVaultPath(vault string) (ResolvedPath, error) {
 			return ResolvedPath{Path: parsed.Path}, nil
 		}
 
-		conf, err := GetConfig()
+		err := LoadConfig()
 		if err == nil {
 			if vault == "default" {
-				defaultPath, ok := conf.Get("defaults.path")
-				if ok {
+				defaultPath := viper.GetString("defaults.path")
+				if defaultPath != "" {
 					return ResolvedPath{Path: defaultPath}, nil
 				}
 
@@ -183,18 +131,11 @@ func ResolveVaultPath(vault string) (ResolvedPath, error) {
 				return ResolvedPath{Path: defaultPath}, nil
 			}
 
-			aliases, ok := conf.Get("aliases")
-			if ok {
-				lines := strings.Split(aliases, "\n")
-				for _, line := range lines {
-					parts := strings.SplitN(line, "=", 2)
-					if len(parts) == 2 {
-						name := strings.TrimSpace(parts[0])
-						path := strings.TrimSpace(parts[1])
-						if strings.EqualFold(name, vault) {
-							return ResolvedPath{Path: path}, nil
-						}
-					}
+			aliases := viper.GetStringMapString("aliases")
+			if len(aliases) > 0 {
+
+				if path, ok := aliases[vault]; ok {
+					return ResolvedPath{Path: path}, nil
 				}
 			}
 		} else {
@@ -307,16 +248,20 @@ func OpenKeyring() (keyring.Keyring, error) {
 	keychain := "login"
 	libsecret := "login"
 
-	conf, err := GetConfig()
+	err := LoadConfig()
 	if err == nil {
-		if v, ok := conf.Get("libsecret.collection"); ok && v != "" {
-			libsecret = v
+		libsecret = viper.GetString("libsecret.collection")
+		keychain = viper.GetString("keychain.name")
+		serviceName = viper.GetString("service.name")
+
+		if serviceName == "" {
+			serviceName = "kpv"
 		}
-		if v, ok := conf.Get("keychain.name"); ok && v != "" {
-			keychain = v
+		if keychain == "" {
+			keychain = "login"
 		}
-		if v, ok := conf.Get("service.name"); ok && v != "" {
-			serviceName = v
+		if libsecret == "" {
+			libsecret = "login"
 		}
 	}
 

@@ -40,8 +40,8 @@ func toScreamingSnakeCase(input string) string {
 	return output
 }
 
-// getCmd represents the get command
-var getCmd = &cobra.Command{
+// secretsGetCmd represents the get command
+var secretsGetCmd = &cobra.Command{
 	Use:   "get <key>...",
 	Short: "Get one or more secrets from KeePass vault",
 	Long: `Get one or more secrets from a KeePass vault.
@@ -219,6 +219,6 @@ Examples:
 
 func init() {
 
-	getCmd.Flags().StringSliceP("key", "k", []string{}, "Name of secret(s) to get (can be specified multiple times)")
-	getCmd.Flags().StringP("format", "f", "text", "Output format (text, json, sh, bash, zsh, powershell, pwsh, dotenv, azure-devops, github-actions, run)")
+	secretsGetCmd.Flags().StringSliceP("key", "k", []string{}, "Name of secret(s) to get (can be specified multiple times)")
+	secretsGetCmd.Flags().StringP("format", "f", "text", "Output format (text, json, sh, bash, zsh, powershell, pwsh, dotenv, azure-devops, github-actions, run)")
 }

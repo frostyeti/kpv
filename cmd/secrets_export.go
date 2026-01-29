@@ -25,8 +25,8 @@ type SecretExport struct {
 	Binaries map[string]CustomString `json:"binaries,omitempty"`
 }
 
-// exportCmd represents the export command
-var exportCmd = &cobra.Command{
+// secretsExportCmd represents the export command
+var secretsExportCmd = &cobra.Command{
 	Use:   "export",
 	Short: "Export secrets from KeePass vault to JSON",
 	Long: `Export all entries string from a KeePass vault to a JSON file.
@@ -209,9 +209,9 @@ Examples:
 }
 
 func init() {
-	secretsCmd.AddCommand(exportCmd)
+	secretsCmd.AddCommand(secretsExportCmd)
 
-	exportCmd.Flags().Bool("json", false, "Export in JSON format (required for now)")
-	exportCmd.Flags().StringP("file", "f", "", "Output JSON file path (default: stdout)")
-	exportCmd.Flags().Bool("pretty", false, "Pretty-print JSON output")
+	secretsExportCmd.Flags().Bool("json", false, "Export in JSON format (required for now)")
+	secretsExportCmd.Flags().StringP("file", "f", "", "Output JSON file path (default: stdout)")
+	secretsExportCmd.Flags().Bool("pretty", false, "Pretty-print JSON output")
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/frostyeti/kpv/internal/keepass"
 	"github.com/frostyeti/kpv/internal/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // initCmd represents the init command
@@ -61,10 +62,10 @@ Examples:
 		var err error
 
 		if vault == "" {
-			conf, err := utils.GetConfig()
+			err := utils.LoadConfig()
 			if err == nil {
-				v, ok := conf.Get("defaults.path")
-				if ok {
+				v := viper.GetString("defaults.path")
+				if v != "" {
 					if filepath.IsAbs(v) {
 						vaultPath = v
 					} else {

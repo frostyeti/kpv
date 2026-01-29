@@ -34,8 +34,8 @@ type SecretImport struct {
 	Chars     string `json:"chars,omitempty"`     // Custom character set (overrides all other options)
 }
 
-// importCmd represents the import command
-var importCmd = &cobra.Command{
+// secretsImportCmd represents the import command
+var secretsImportCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Import secrets from JSON to KeePass vault",
 	Long: `Import secrets from a JSON file to a KeePass vault.
@@ -312,9 +312,9 @@ Example JSON format:
 }
 
 func init() {
-	secretsCmd.AddCommand(importCmd)
+	secretsCmd.AddCommand(secretsImportCmd)
 
-	importCmd.Flags().Bool("json", false, "Import from JSON format (required for now)")
-	importCmd.Flags().StringP("file", "f", "", "Input JSON file path")
-	importCmd.Flags().Bool("stdin", false, "Read JSON from stdin")
+	secretsImportCmd.Flags().Bool("json", false, "Import from JSON format (required for now)")
+	secretsImportCmd.Flags().StringP("file", "f", "", "Input JSON file path")
+	secretsImportCmd.Flags().Bool("stdin", false, "Read JSON from stdin")
 }

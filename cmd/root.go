@@ -60,4 +60,10 @@ func init() {
 		Use:    "no-help",
 		Hidden: true,
 	})
+
+	RootCmd.AddCommand(secretsGetCmd)
+	RootCmd.AddCommand(secretsEnsureCmd)
+	RootCmd.AddCommand(secretsLsCmd)
+	RootCmd.AddCommand(secretsRmCmd)
+	RootCmd.AddCommand(secretsSetCmd)
 }

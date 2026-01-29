@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/frostyeti/kpv/cmd"
 )
 
 var secretsCmd = &cobra.Command{
@@ -13,5 +11,5 @@ var secretsCmd = &cobra.Command{
 }
 
 func init() {
-	cmd.RootCmd.AddCommand(secretsCmd)
+	RootCmd.AddCommand(secretsCmd)
 }
