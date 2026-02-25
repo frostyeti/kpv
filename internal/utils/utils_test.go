@@ -46,7 +46,7 @@ func TestResolveVaultPath(t *testing.T) {
 				if filepath.IsAbs(tt.expected) {
 					assert.Equal(t, tt.expected, res.Path)
 				} else {
-					assert.Contains(t, res.Path, tt.expected)
+					assert.Contains(t, filepath.ToSlash(res.Path), tt.expected)
 				}
 			}
 		})
