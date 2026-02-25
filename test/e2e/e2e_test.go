@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,11 @@ import (
 func buildBinary(t *testing.T) string {
 	t.Helper()
 	tmpDir := t.TempDir()
-	binPath := filepath.Join(tmpDir, "kpv")
+	binName := "kpv"
+	if runtime.GOOS == "windows" {
+		binName = "kpv.exe"
+	}
+	binPath := filepath.Join(tmpDir, binName)
 
 	cmd := exec.Command("go", "build", "-o", binPath, "../../main.go")
 	cmd.Stderr = os.Stderr
