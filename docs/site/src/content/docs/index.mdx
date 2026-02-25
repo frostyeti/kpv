@@ -98,6 +98,21 @@ kpv secrets get --key my-api-key --format bash
 kpv secrets get --key db-user --key db-pass --format json
 ```
 
+### Listing & Removing Secrets
+
+List all existing entries in the vault or remove specific ones:
+
+```bash
+# List all secret keys in the default vault
+kpv secrets ls
+
+# Remove a secret
+kpv secrets rm --key my-api-key
+
+# Remove multiple secrets at once
+kpv secrets rm --key secret1 --key secret2
+```
+
 ### Ensuring Secrets Exist
 
 If you want a script to create a secret *only if it doesn't already exist*, use `ensure`:
@@ -186,8 +201,43 @@ The `config` command manages your local `kpv` configuration file (stored in your
 | `kpv config get <key>` | Get a specific configuration value. |
 | `kpv config ls` | List all configuration settings. |
 | `kpv config rm <key>` | Remove a setting from the config. |
-| `kpv config aliases ...` | Manage vault aliases. |
-| `kpv config secret ...` | Manage passwords in your OS's native secure keyring. |
+
+### Config Subcommands
+
+| Command | Description |
+|---------|-------------|
+| `kpv config aliases set <name> <path>` | Set a KeePass path alias. |
+| `kpv config aliases get <name>` | Get the path for an alias. |
+| `kpv config aliases ls` | List all configured path aliases. |
+| `kpv config aliases rm <name>` | Remove a path alias. |
+| `kpv config secret set <key>` | Prompt and store a vault password into the OS's native secure keyring. |
+| `kpv config secret get <key>` | Retrieve a password from the OS keyring. |
+| `kpv config secret rm <key>` | Remove a password from the OS keyring. |
+
+---
+
+## Command Reference
+
+Below is a complete list of all top-level operations available via `kpv`. Run `kpv [command] --help` for specific flags and options.
+
+### Root Commands
+
+- `kpv init`: Initialize a new KeePass vault.
+- `kpv config`: Manage global and local `kpv` configuration.
+- `kpv secrets`: Manage entries and values inside a KeePass vault.
+
+### Secrets Commands (`kpv secrets`)
+
+- `ensure`: Get a secret, or randomly generate it if it does not already exist.
+- `export`: Export vault entries to JSON.
+- `get`: Retrieve the standard value of one or more secrets.
+- `get-string`: Retrieve a custom (non-standard) string field from a specific entry.
+- `import`: Import JSON secrets into a vault.
+- `ls`: List all secret names/keys in the vault.
+- `rm`: Remove one or more secrets from the vault.
+- `set`: Set the value of a secret (from value, file, stdin, or random generation).
+- `set-string`: Set a custom (non-standard) string field on a specific entry.
+- `sync`: Sync vault secrets based on a JSON declaration, updating only what differs.
 
 ---
 
