@@ -1,4 +1,3 @@
-// @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
@@ -6,19 +5,17 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
 	integrations: [
 		starlight({
-			title: 'kpv',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/frostyeti/kpv' }],
+			title: 'KeePass Vault CLI',
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/frostyeti/kpv' },
+			],
 			sidebar: [
 				{
-					label: 'Guides',
+					label: 'Documentation',
 					items: [
-						{ label: 'Getting Started', slug: 'guides/getting-started' },
+						{ label: 'Home', link: '/' },
 					],
-				},
-				{
-					label: 'Commands',
-					autogenerate: { directory: 'commands' },
-				},
+				}
 			],
 		}),
 	],
