@@ -80,6 +80,7 @@ Examples:
 }
 
 func init() {
+	secretsCmd.AddCommand(secretsGetStringCmd)
 
 	secretsGetStringCmd.Flags().StringP("key", "k", "", "The secret name/key (required)")
 	secretsGetStringCmd.Flags().StringP("field", "f", "", "The custom field name to retrieve (required)")

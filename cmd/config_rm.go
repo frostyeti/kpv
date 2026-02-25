@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
+	"os"
+	"strings"
+
 	"github.com/frostyeti/kpv/internal/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,20 +20,51 @@ var configRmCmd = &cobra.Command{
 
 		err := utils.LoadConfig()
 		if err != nil {
-			cmd.PrintErrln("Error loading config:", err)
+			utils.Failf("Error loading config: %v\n", err)
 			return
 		}
 
-		viper.Set(key, nil)
+		settings := viper.AllSettings()
 
-		err = viper.WriteConfig()
-		if err != nil {
-			cmd.PrintErrln("Error writing config:", err)
-			return
+		// Navigate and delete the key
+		parts := strings.Split(key, ".")
+		deleteKey(settings, parts)
+
+		// Viper doesn't have an Unset method, and WriteConfig merges,
+		// so we write the JSON ourselves to completely remove the key.
+		file := viper.ConfigFileUsed()
+		if file != "" {
+			b, err := json.MarshalIndent(settings, "", "  ")
+			if err != nil {
+				utils.Failf("Error marshalling config: %v\n", err)
+			}
+			err = os.WriteFile(file, b, 0600)
+			if err != nil {
+				utils.Failf("Error writing config: %v\n", err)
+			}
 		}
 
-		cmd.Printf("Configuration key '%s' removed successfully.\n", key)
+		utils.Okf("Configuration key '%s' removed successfully.", key)
 	},
+}
+
+func deleteKey(m map[string]interface{}, parts []string) {
+	if len(parts) == 0 {
+		return
+	}
+
+	key := parts[0]
+	if len(parts) == 1 {
+		delete(m, key)
+		return
+	}
+
+	if nested, ok := m[key].(map[string]interface{}); ok {
+		deleteKey(nested, parts[1:])
+		if len(nested) == 0 {
+			delete(m, key)
+		}
+	}
 }
 
 func init() {

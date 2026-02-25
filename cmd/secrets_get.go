@@ -218,6 +218,7 @@ Examples:
 }
 
 func init() {
+	secretsCmd.AddCommand(secretsGetCmd)
 
 	secretsGetCmd.Flags().StringSliceP("key", "k", []string{}, "Name of secret(s) to get (can be specified multiple times)")
 	secretsGetCmd.Flags().StringP("format", "f", "text", "Output format (text, json, sh, bash, zsh, powershell, pwsh, dotenv, azure-devops, github-actions, run)")
