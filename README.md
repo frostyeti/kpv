@@ -107,18 +107,21 @@ Flags:
 
 ### `kpv exec`
 
-Execute a command with specific secrets loaded as environment variables.
+Execute a command with secrets loaded as environment variables.
 
-To prevent exposing your entire vault, you must specify which secrets to load using `--key`.
+If no keys are specified, **ALL** secrets from the vault will be loaded into the environment. 
+To prevent exposing your entire vault unnecessarily, you can specify which secrets to load using `--key` or `--key-file`.
 The secrets are automatically formatted as `SCREAMING_SNAKE_CASE` environment variables.
 
 Examples:
-- `kpv exec --key db-password -- npm start`
+- `kpv exec npm start` (Loads all secrets, no `--` required)
+- `kpv exec --key db-password npm start` (Loads only db-password)
 - `kpv exec -k db-pass -k api-token -- ./deploy.sh`
 - The secret `my-api-token` becomes the environment variable `MY_API_TOKEN`.
 
 Flags:
 - `-k, --key` Name of the secret(s) to load (repeatable)
+- `--key-file` Path to a file containing a list of keys to load (one per line)
 
 ### `kpv secrets get-string`
 
