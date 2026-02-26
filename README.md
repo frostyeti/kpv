@@ -105,6 +105,21 @@ Flags:
 - `-k, --key` Secret key (repeatable)
 - `-f, --format` Output format
 
+### `kpv exec`
+
+Execute a command with specific secrets loaded as environment variables.
+
+To prevent exposing your entire vault, you must specify which secrets to load using `--key`.
+The secrets are automatically formatted as `SCREAMING_SNAKE_CASE` environment variables.
+
+Examples:
+- `kpv exec --key db-password -- npm start`
+- `kpv exec -k db-pass -k api-token -- ./deploy.sh`
+- The secret `my-api-token` becomes the environment variable `MY_API_TOKEN`.
+
+Flags:
+- `-k, --key` Name of the secret(s) to load (repeatable)
+
 ### `kpv secrets get-string`
 
 Get a custom string field from an entry.
