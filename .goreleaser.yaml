@@ -14,10 +14,8 @@ builds:
     goarch:
       - amd64
       - arm64
-    # removed ignore windows/arm64 rule to enable building for it
 archives:
   - format: tar.gz
-    # completely lowercased format
     name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     format_overrides:
       - goos: windows
@@ -38,7 +36,8 @@ aurs:
   - name: kpv-bin
     homepage: https://github.com/frostyeti/kpv
     description: KeePass Vault CLI
-    maintainer: frostyeti <frostyeti@users.noreply.github.com>
+    maintainers:
+      - frostyeti <frostyeti@users.noreply.github.com>
     license: MIT
 brews:
   - name: kpv
@@ -46,6 +45,14 @@ brews:
       owner: frostyeti
       name: homebrew-tap
     directory: Formula
+    homepage: https://github.com/frostyeti/kpv
+    description: KeePass Vault CLI
+    license: MIT
+scoops:
+  - name: kpv
+    repository:
+      owner: frostyeti
+      name: scoop-bucket
     homepage: https://github.com/frostyeti/kpv
     description: KeePass Vault CLI
     license: MIT
@@ -57,9 +64,17 @@ chocolateys:
     project_url: https://github.com/frostyeti/kpv
     description: KeePass Vault CLI
     tags: keepass vault cli
-# Placeholder for AppImage
-# appimages:
-#   - name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    # skip_publish: true is for chocolatey, it means don't push to chocolatey.org. By default it doesn't anyway unless configured.
+winget:
+  - name: kpv
+    publisher: frostyeti
+    license: MIT
+    short_description: KeePass Vault CLI
+    homepage: https://github.com/frostyeti/kpv
+    skip_upload: true
+    repository:
+      owner: frostyeti
+      name: winget-pkgs
 dockers:
   - image_templates:
       - "ghcr.io/frostyeti/kpv:{{ .Version }}-amd64"

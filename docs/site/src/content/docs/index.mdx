@@ -21,6 +21,38 @@ Whether you're injecting secrets into environment variables, synchronizing confi
 
 Download the latest binary for your operating system from the [Releases page](https://github.com/frostyeti/kpv/releases) and place it in your `$PATH`.
 
+### Windows Package Managers (Winget / Chocolatey)
+
+You can download offline packages for Winget and Chocolatey directly from the releases page and install them locally.
+
+#### Winget Local Installation
+
+1. Download the Winget manifest bundle:
+```bash
+curl -LO https://github.com/frostyeti/kpv/releases/latest/download/kpv-winget.zip
+```
+2. Extract the manifest files:
+```bash
+tar -xf kpv-winget.zip
+```
+3. Install using `winget` (run inside the directory where the `.yaml` files were extracted):
+```bash
+winget install --manifest .
+```
+
+#### Chocolatey Local Installation
+
+1. Download the Chocolatey `.nupkg` bundle:
+```bash
+curl -LO https://github.com/frostyeti/kpv/releases/latest/download/kpv.1.0.0.nupkg
+```
+*(Note: Replace `1.0.0` with the actual version number).*
+
+2. Install using `choco`:
+```bash
+choco install kpv -s . -y
+```
+
 ---
 
 ## Getting Started

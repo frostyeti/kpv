@@ -23,6 +23,17 @@ jobs:
           go-version: '1.25.x'
           cache: true
 
+      - name: Setup Chocolatey for GoReleaser
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mono-devel
+          mkdir -p /tmp/choco && cd /tmp/choco
+          wget "https://github.com/chocolatey/choco/releases/download/2.3.0/chocolatey.v2.3.0.tar.gz" -O choco.tar.gz
+          tar -xzf choco.tar.gz
+          echo -e '#!/bin/bash\nmono /tmp/choco/choco.exe "$@"' | sudo tee /usr/local/bin/choco
+          sudo chmod +x /usr/local/bin/choco
+          choco -v
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -31,3 +42,11 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Winget Manifests to Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd dist
+          zip -r kpv-winget.zip winget/manifests
+          gh release upload ${{ github.ref_name }} kpv-winget.zip

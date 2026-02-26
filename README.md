@@ -1,297 +1,130 @@
-# kpv - KeePass Vault CLI
+<p align="center">
+  <img alt="GoReleaser Logo" src="https://avatars2.githubusercontent.com/u/24697112?v=3&s=200" height="140" />
+  <h3 align="center">GoReleaser</h3>
+  <p align="center">Release engineering, simplified.</p>
+</p>
 
-kpv is a CLI for automating secrets management with KeePass (`.kdbx`) vaults. It supports initializing vaults, getting/setting secrets, listing, importing, exporting, removing, ensuring, and syncing entries, with sensible defaults and OS keyring integration.
+---
 
-## Install
-
-Build locally:
-
-```bash
-mise r build
-./bin/kpv --help
-```
-
-## Quick Start
-
-Initialize the default vault and auto-generate a password:
-
-```bash
-kpv init
-```
-
-This creates `~/.local/share/kpv/default.kdbx` on Linux/macOS (or `%LOCALAPPDATA%/kpv/default.kdbx` on Windows). The generated password is saved to your OS keyring and a `.key` file in `~/.local/share/kpv/` for backup.
-
-Set a secret:
-
-```bash
-kpv secrets set --key api-token --value "super-secret"
-```
-
-Get a secret:
-
-```bash
-kpv secrets get --key api-token
-```
-
-List secrets:
-
-```bash
-kpv secrets ls
-kpv secrets ls "app-*"
-```
-
-## Global Flags
-
-Available on all commands (env vars in parentheses):
-- `-V, --vault` (`KPV_VAULT`): Vault name or path.
-- `-P, --vault-password` (`KPV_PASSWORD`): KeePass vault password.
-- `-F, --vault-password-file` (`KPV_PASSWORD_FILE`): Path to file containing the KeePass vault password.
-- `--vault-os-secret` (`KPV_VAULT_OS_SECRET`): OS secret store key used to retrieve the vault password.
-
-Passwords can also be read from the OS keyring (if previously saved) or a `.key` file in the kpv data directory.
-
-## Commands
-
-### `kpv init`
-
-Initialize a new KeePass vault.
-
-Examples:
-- Default vault: `kpv init`
-- Named vault in global location: `kpv init --vault myvault --global`
-- Specific path: `kpv init --vault /path/to/vault.kdbx`
-- Custom password: `kpv init --vault myvault --vault-password "my-secure-password"`
-
-Notes:
-- If no password is provided, a strong one is generated and saved to the OS keyring and a `.key` file.
-- Prevents overwriting an existing file.
-
-Flags:
-- `-V, --vault` Vault name or path
-- `--global` Place simple `--vault` names under the default directory
-- `-P, --vault-password` Vault password
-- `-F, --vault-password-file` Path to file containing the vault password
-- `--vault-os-secret` OS secret store key used to retrieve the vault password
-
-### `kpv secrets ensure`
-
-Get a secret if it exists; otherwise generate and set it, then output the value.
-
-Examples:
-- `kpv secrets ensure --key my-secret`
-- `kpv secrets ensure --key my-secret --size 32 -U -S`
-- `kpv secrets ensure my-secret`
-
-Generation options:
-- `--size` (default 16) - sets the length of the generated secret. 
-- `-U, --no-upper` - disables using upper english characters.
-- `-L, --no-lower` - disables using lower english characters.
-- `-D, --no-digits` - disables using digits.
-- `-S, --no-special` - disables special characters/symbols.
-- `--special <special>` - set the special symbols that are used.
-- `--chars <chars>` - mutually exclusive with the other character options.
-
-### `kpv secrets get`
-
-Get one or more secrets by key.
-
-Examples:
-- Single: `kpv secrets get --key my-secret`
-- Multiple: `kpv secrets get --key secret1 --key secret2`
-- Formats: `json`, `sh|bash|zsh`, `pwsh|powershell`, `dotenv`, `null`, 
-  `azure-devops`, `github-actions`, `run`, and the default `text`.
-
-Flags:
-- `-k, --key` Secret key (repeatable)
-- `-f, --format` Output format
-
-### `kpv secrets get-string`
-
-Get a custom string field from an entry.
-
-Example:
-- `kpv secrets get-string --key my-secret --field api-key`
-
-Notes:
-- Standard fields (`Title`, `Username`, `Password`, `URL`, `Notes`) should be retrieved via `secrets get`.
-
-Flags:
-- `-k, --key` Entry title
-- `-f, --field` Custom field name
-
-### `kpv secrets set`
-
-Create or update a secret value.
-
-Input methods (mutually exclusive; if none given, `--generate` is assumed):
-- `--value` - sets the value on the command line. Should only be used by a script. 
-- `--file` - sets the value using the file provided
-- `--env` - sets the value using the environment variable given.
-- `--stdin` - sets the value using Standard Input.
-- `--generate` - generate the value using a cryptographically secure secret generator.
-
-Generation options:
-- `--size` (default 16), 
-- `-U, --no-upper` - disables using upper english characters.
-- `-L, --no-lower` - disables using lower english characters.
-- `-D, --no-digits` - disables using digits.
-- `-S, --no-special` - disables special characters/symbols.
-- `--special <special>` - set the special symbols that are used.
-- `--chars <chars>` - mutually exclusive with the other character options.
-
-
-Examples:
-- `kpv secrets set --key my-secret --value "secret-value"`
-- `kpv secrets set --key my-secret --file ./secret.txt`
-- `echo "secret" | kpv secrets set --key my-secret --stdin`
-- `kpv secrets set --key my-secret --generate --size 32`
-
-### `kpv secrets set-string`
-
-Set a custom string field on an entry (protected or unprotected).
-
-Examples:
-- `kpv secrets set-string --key my-secret --field api-key --value "abc123"`
-- `kpv secrets set-string --key my-secret --field cert --file cert.pem`
-- `echo "value" | kpv secrets set-string --key my-secret --field custom --stdin`
-- Protected: `kpv secrets set-string --key my-secret --field token --value "xyz" --protected`
-
-Flags:
-- `-k, --key` - The full path to the entry including groups using forward
-  slashes e.g. group1/next-group/entry-name
-- `-f, --field` - The custom string field name.
-- `-v, --value` - The value. This should only be used in a script.
-- `--file` - Sets the value by reading it from the given file.
-- `--env`  - Sets the value using the given environment variable
-- `--stdin` - Sets the value using the Standard Input. Useful for piping the value.
-- `-p, --protected` - Instructs keepass to protect the value by encrypting it.
-
-### `kpv secrets ls`
-
-List secrets. Supports glob filters.
-
-Examples:
-- `kpv secrets ls`
-- `kpv secrets ls "app-*"`
-- `kpv secrets list "db-*-password"`
-
-### `kpv secrets rm`
-
-Remove one or more secrets.
-
-Examples:
-- `kpv secrets rm --key secret1 --key secret2`
-- `kpv secrets rm --key my-secret --yes`
-
-Flags:
-- `-k, --key` Secret key(s)
-- `-y, --yes` Skip confirmation
-
-### `kpv secrets export`
-
-Export all secrets to JSON.
-
-Examples:
-- `kpv secrets export --json --file secrets.json`
-- `kpv secrets export --json --pretty`
-
-Flags:
-- `--json` Required for now
-- `-f, --file` Output file (default stdout)
-- `--pretty` Pretty-print JSON
-
-Output per secret:
-- `value`, optional `username`, `url`, `notes`
-- `strings`: `{ value, encrypted }`
-- `tags`: map of tag names (empty values)
-
-### `kpv secrets import`
-
-Import secrets from JSON.
-
-Examples:
-- `kpv secrets import --json --file secrets.json`
-- `cat secrets.json | kpv secrets import --json --stdin`
-
-Flags:
-- `--json` Required for now
-- `-f, --file` Input file
-- `--stdin` Read from stdin
-
-Accepted JSON per secret:
-- Simple string value, or an object with: `value`, `username`, `url`, `notes`, `strings` (`{ value, encrypted }`), optional generation: `ensure`, `size`, `noUpper`, `noLower`, `noDigits`, `noSpecial`, `special`, `chars`.
-
-### `kpv secrets sync`
-
-Sync secrets from JSON, updating only when values differ; supports delete, ensure, dry-run.
-
-Examples:
-- `kpv secrets sync --json --file secrets.json`
-- `cat secrets.json | kpv secrets sync --json --stdin`
-- `kpv secrets sync --json --file secrets.json --dry-run`
-
-Flags:
-- `--json` Required for now
-- `-f, --file` Input file
-- `--stdin` Read from stdin
-- `--dry-run` Show changes without applying
-
-JSON per secret supports: `value`, `username`, `url`, `notes`, `strings { value, encrypted }`, `tags { name }`, `delete`, `ensure`, `size`, `noUpper`, `noLower`, `noDigits`, `noSpecial`, `special`, `chars`.
-
-### `kpv config`
-
-Manage CLI configuration values.
-
-Subcommands:
-- `kpv config get <key>`: Print a config value.
-- `kpv config set <key> <value>`: Set a config value.
-- `kpv config ls [filter]`: List keys (optional glob filter).
-- `kpv config rm <key>`: Remove a config value.
-
-Examples:
-- `kpv config set defaults.path /path/to/default.kdbx`
-- `kpv config get defaults.path`
-- `kpv config ls "alias*"`
-
-### `kpv config aliases`
-
-Manage KeePass path aliases stored in config.
-
-Subcommands:
-- `kpv config aliases set <name> <path>`
-- `kpv config aliases get <name>`
-- `kpv config aliases ls [filter]`
-
-### `kpv config secret`
-
-Manage KeePass database passwords in the OS secret store.
-
-Subcommands:
-- `kpv config secret get <path|file:///path|kpv:///path>`: Retrieve from OS keyring.
-- `kpv config secret set <path> [secret]`: Store to OS keyring; supports `--file`, `--stdin`, `--env`, `--prompt`.
-
-Notes:
-- Paths are normalized to `kpv:///absolute/path`.
-- Combine with global `--vault-os-secret` for retrieval during CLI runs.
-
-## Defaults & Discovery
-
-- Default vault path (Linux/macOS): `~/.local/share/kpv/default.kdbx`.
-- Simple names resolve under the default directory when used with `init --global`.
-- Password resolution order: `--password` > `--password-file` > env (`KPV_PASSWORD`/`KPV_PASSWORD_FILE`) > OS keyring > `.key` file.
-
-## Environment Variables
-
-- `KPV_VAULT` default vault name/path
-- `KPV_PASSWORD` vault password
-- `KPV_PASSWORD_FILE` path to a file with the password
-- `KPV_VAULT_OS_SECRET` OS secret store key for retrieving the vault password
-
-## Tips
-
-- Back up generated `.key` files securely; consider removing them after storing elsewhere.
-- Prefer OS keyring storage for convenience and security.
-
-## Help
-
-Use `kpv --help` or any subcommand with `--help` for details.
+GoReleaser builds Go binaries for several platforms, creates a GitHub release and then
+pushes a Homebrew formula to a tap repository. All that wrapped in your favorite CI.
+
+![](https://raw.githubusercontent.com/goreleaser/example-simple/main/goreleaser.gif)
+
+---
+
+## Get GoReleaser
+
+- [On your machine](https://goreleaser.com/install/);
+- [On CI/CD systems](https://goreleaser.com/ci/).
+
+## Documentation
+
+Documentation is hosted live at https://goreleaser.com
+
+## Community
+
+You have questions, need support and or just want to talk about GoReleaser?
+
+Here are ways to get in touch with the GoReleaser community:
+
+[![Join Discord](https://img.shields.io/badge/Join_our_Discord_server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/RGEBtg8vQ6)
+[![Follow Twitter](https://img.shields.io/badge/follow_on_twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/goreleaser)
+[![GitHub Discussions](https://img.shields.io/badge/GITHUB_DISCUSSION-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/goreleaser/goreleaser/discussions)
+
+You can find the links above and all others [here](https://goreleaser.com/links/).
+
+### Code of Conduct
+
+This project adheres to the Contributor Covenant [code of conduct](https://github.com/goreleaser/.github/blob/main/CODE_OF_CONDUCT.md).
+By participating, you are expected to uphold this code.
+We appreciate your contribution.
+Please refer to our [contributing guidelines](CONTRIBUTING.md) for further information.
+
+## Badges
+
+[![Release](https://img.shields.io/github/release/goreleaser/goreleaser.svg?style=for-the-badge)](https://github.com/goreleaser/goreleaser/releases/latest)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
+[![Build status](https://img.shields.io/github/actions/workflow/status/goreleaser/goreleaser/build.yml?style=for-the-badge&branch=main)](https://github.com/goreleaser/goreleaser/actions?workflow=build)
+[![Codecov branch](https://img.shields.io/codecov/c/github/goreleaser/goreleaser/main.svg?style=for-the-badge)](https://codecov.io/gh/goreleaser/goreleaser)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/goreleaser&style=for-the-badge)](https://artifacthub.io/packages/search?repo=goreleaser)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](http://godoc.org/github.com/goreleaser/goreleaser)
+[![Powered By: GoReleaser](https://img.shields.io/badge/powered%20by-goreleaser-green.svg?style=for-the-badge)](https://github.com/goreleaser)
+[![Backers on Open Collective](https://opencollective.com/goreleaser/backers/badge.svg?style=for-the-badge)](https://opencollective.com/goreleaser/backers/)
+[![Sponsors on Open Collective](https://opencollective.com/goreleaser/sponsors/badge.svg?style=for-the-badge)](https://opencollective.com/goreleaser/sponsors/)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge)](https://conventionalcommits.org)
+[![CII Best Practices](https://img.shields.io/cii/summary/5420?label=openssf%20best%20practices&style=for-the-badge)](https://bestpractices.coreinfrastructure.org/projects/5420)
+
+## GitHub Sponsors
+
+High-tier sponsors of [@caarlos0](https://github.com/sponsors/caarlos0/) on GitHub:
+
+<a href="https://smallstep.com" target="_blank"><img width="200" src="https://github.com/goreleaser/goreleaser/assets/245435/05ade839-6652-474a-af90-da3ea67dde24"></a>
+
+## OpenCollective
+
+### Sponsors
+
+Does your company use goreleaser? Help keep the project bug-free and feature rich by [sponsoring the project](https://opencollective.com/goreleaser#sponsor).
+
+<a href="https://opencollective.com/goreleaser/sponsors/0/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/0/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/1/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/1/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/2/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/2/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/3/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/3/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/4/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/4/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/5/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/5/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/6/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/6/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/7/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/7/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/8/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/8/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/9/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/9/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/10/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/10/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/11/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/11/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/12/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/12/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/13/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/13/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/14/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/14/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/15/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/15/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/16/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/16/avatar"></a>
+
+### Backers
+
+Love our work and community? [Become a backer](https://opencollective.com/goreleaser).
+
+<a href="https://opencollective.com/goreleaser/backers/0/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/0/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/1/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/1/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/2/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/2/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/3/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/3/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/4/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/4/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/5/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/5/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/6/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/6/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/7/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/7/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/8/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/8/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/9/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/9/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/10/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/10/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/11/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/11/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/12/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/12/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/13/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/13/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/14/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/14/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/15/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/15/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/16/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/16/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/17/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/17/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/18/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/18/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/19/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/19/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/20/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/20/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/21/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/21/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/22/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/22/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/23/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/23/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/24/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/24/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/25/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/25/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/26/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/26/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/27/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/27/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/28/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/28/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/29/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/29/avatar"></a>
+
+### Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/goreleaser/goreleaser/graphs/contributors"><img src="https://opencollective.com/goreleaser/contributors.svg?width=890" /></a>
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/goreleaser/goreleaser.svg?variant=adaptive)](https://starchart.cc/goreleaser/goreleaser)
