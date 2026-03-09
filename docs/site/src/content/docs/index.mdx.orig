@@ -1,0 +1,284 @@
+---
+title: KeePass Vault CLI (kpv)
+description: A command-line tool for managing and automating secrets with KeePass.
+---
+
+`kpv` is a powerful, developer-friendly command-line interface for managing secrets stored in KeePass (`.kdbx`) databases. It is designed to bridge the gap between secure, offline password management and modern automation workflows.
+
+Whether you're injecting secrets into environment variables, synchronizing configurations across environments, or generating secure passwords on the fly, `kpv` provides a unified toolset.
+
+## Features
+
+- **Seamless Automation**: Output secrets in various formats (`json`, `sh`, `bash`, `zsh`, `powershell`, `dotenv`, `github-actions`) for easy consumption by scripts and CI/CD pipelines.
+- **Stateful Synchronization**: Sync JSON configurations directly to your vault, updating only fields that have changed.
+- **Secret Generation**: Ensure secrets exist with fine-grained control over character sets and length.
+- **OS Keyring Integration**: Store your KeePass master password securely in your operating system's native credential store (macOS Keychain, Linux Secret Service, Windows Credential Manager).
+- **Configuration Management**: Define global defaults, path aliases, and environments so you don't have to specify flags repeatedly.
+
+---
+
+## Installation
+
+Download the latest binary for your operating system from the [Releases page](https://github.com/frostyeti/kpv/releases) and place it in your `$PATH`.
+
+### Windows Package Managers (Winget / Chocolatey)
+
+You can download offline packages for Winget and Chocolatey directly from the releases page and install them locally.
+
+#### Winget Local Installation
+
+1. Download the Winget manifest bundle:
+```bash
+curl -LO https://github.com/frostyeti/kpv/releases/latest/download/kpv-winget.zip
+```
+2. Extract the manifest files:
+```bash
+tar -xf kpv-winget.zip
+```
+3. Install using `winget` (run inside the directory where the `.yaml` files were extracted):
+```bash
+winget install --manifest .
+```
+
+#### Chocolatey Local Installation
+
+1. Download the Chocolatey `.nupkg` bundle:
+```bash
+curl -LO https://github.com/frostyeti/kpv/releases/latest/download/kpv.1.0.0.nupkg
+```
+*(Note: Replace `1.0.0` with the actual version number).*
+
+2. Install using `choco`:
+```bash
+choco install kpv -s . -y
+```
+
+---
+
+## Getting Started
+
+### 1. Initialize a New Vault
+
+You can create a new KeePass database directly from the CLI.
+
+```bash
+kpv init --vault ./my-vault.kdbx
+```
+
+You will be prompted to enter and confirm a master password.
+
+### 2. Configure Your Default Vault
+
+To avoid passing `--vault` and password flags to every command, you can configure `kpv` to remember them.
+
+```bash
+# Set a default vault path or alias
+kpv config set default_vault ./my-vault.kdbx
+
+# Store the vault password in your OS's secure secret store
+kpv config secret set kpv-master-password
+
+# Configure kpv to use this OS secret automatically
+kpv config set vault_os_secret kpv-master-password
+```
+
+From now on, you can simply run commands like `kpv secrets ls` and `kpv` will securely unlock the vault.
+
+### 3. Using Vault Aliases
+
+If you manage multiple vaults, you can set up aliases instead of remembering full file paths:
+
+```bash
+kpv config aliases set prod /path/to/prod-vault.kdbx
+kpv secrets get --vault prod --key database-url
+```
+
+---
+
+## Managing Secrets
+
+The `secrets` subcommand is the core of `kpv`. Below are common operations for interacting with your vault.
+
+### Setting Secrets
+
+Set a secret directly, from a file, an environment variable, or standard input:
+
+```bash
+# Direct value
+kpv secrets set --key my-api-key --value "super-secret-123"
+
+# From a file
+kpv secrets set --key my-cert --file ./cert.pem
+
+# Generate a new random password (32 chars, no special chars)
+kpv secrets set --key new-db-pass --generate --size 32 --no-special
+```
+
+### Getting Secrets
+
+Retrieve secrets for automation and scripting:
+
+```bash
+# Get the raw value
+kpv secrets get --key my-api-key
+
+# Export as an environment variable source
+kpv secrets get --key my-api-key --format bash
+# Output: export MY_API_KEY='super-secret-123'
+
+# Get multiple secrets as JSON
+kpv secrets get --key db-user --key db-pass --format json
+```
+
+### Listing & Removing Secrets
+
+List all existing entries in the vault or remove specific ones:
+
+```bash
+# List all secret keys in the default vault
+kpv secrets ls
+
+# Remove a secret
+kpv secrets rm --key my-api-key
+
+# Remove multiple secrets at once
+kpv secrets rm --key secret1 --key secret2
+```
+
+### Ensuring Secrets Exist
+
+If you want a script to create a secret *only if it doesn't already exist*, use `ensure`:
+
+```bash
+# Generates a 16-character password if "app-token" doesn't exist.
+# Otherwise, it returns the existing value.
+kpv secrets ensure --key app-token
+```
+
+### Working with Custom String Fields
+
+KeePass entries can store more than just a single password. You can store multiple key-value string fields on a single entry.
+
+```bash
+# Set a custom field on the "database" entry
+kpv secrets set-string --key database --field port --value "5432"
+
+# Retrieve that specific field
+kpv secrets get-string --key database --field port
+```
+
+---
+
+## Import, Export & Sync
+
+`kpv` excels at bulk operations, making it easy to back up vaults or enforce state from configuration files.
+
+### Syncing State
+
+The `sync` command intelligently updates secrets only when their values or properties differ from what's currently stored in the vault. This is ideal for Infrastructure as Code (IaC) workflows.
+
+```bash
+kpv secrets sync --json --file state.json --dry-run
+kpv secrets sync --json --file state.json
+```
+
+**Example `state.json`:**
+
+```json
+{
+  "simple-secret": "new-value",
+  "database-credentials": {
+    "value": "super-secure-password",
+    "username": "admin",
+    "url": "https://db.example.com",
+    "notes": "Production database",
+    "strings": {
+      "port": {
+        "value": "5432",
+        "encrypted": false
+      }
+    }
+  },
+  "deprecated-secret": {
+    "delete": true
+  },
+  "auto-generated-token": {
+    "ensure": true,
+    "size": 32
+  }
+}
+```
+
+### Importing & Exporting
+
+Export your entire vault or specific secrets to JSON, or import from JSON.
+
+```bash
+# Export everything to JSON
+kpv secrets export --json > backup.json
+
+# Import from JSON
+kpv secrets import --json --file backup.json
+```
+
+---
+
+## Configuration Reference
+
+The `config` command manages your local `kpv` configuration file (stored in your OS's standard config directory, e.g., `~/.config/kpv/config.json`).
+
+| Command | Description |
+|---------|-------------|
+| `kpv config set <key> <value>` | Set a global configuration value (e.g., `default_vault`). |
+| `kpv config get <key>` | Get a specific configuration value. |
+| `kpv config ls` | List all configuration settings. |
+| `kpv config rm <key>` | Remove a setting from the config. |
+
+### Config Subcommands
+
+| Command | Description |
+|---------|-------------|
+| `kpv config aliases set <name> <path>` | Set a KeePass path alias. |
+| `kpv config aliases get <name>` | Get the path for an alias. |
+| `kpv config aliases ls` | List all configured path aliases. |
+| `kpv config aliases rm <name>` | Remove a path alias. |
+| `kpv config secret set <key>` | Prompt and store a vault password into the OS's native secure keyring. |
+| `kpv config secret get <key>` | Retrieve a password from the OS keyring. |
+| `kpv config secret rm <key>` | Remove a password from the OS keyring. |
+
+---
+
+## Command Reference
+
+Below is a complete list of all top-level operations available via `kpv`. Run `kpv [command] --help` for specific flags and options.
+
+### Root Commands
+
+- `kpv init`: Initialize a new KeePass vault.
+- `kpv config`: Manage global and local `kpv` configuration.
+- `kpv secrets`: Manage entries and values inside a KeePass vault.
+- `kpv exec`: Execute a command with specific secrets loaded as environment variables.
+
+### Secrets Commands (`kpv secrets`)
+
+- `ensure`: Get a secret, or randomly generate it if it does not already exist.
+- `export`: Export vault entries to JSON.
+- `get`: Retrieve the standard value of one or more secrets.
+- `get-string`: Retrieve a custom (non-standard) string field from a specific entry.
+- `import`: Import JSON secrets into a vault.
+- `ls`: List all secret names/keys in the vault.
+- `rm`: Remove one or more secrets from the vault.
+- `set`: Set the value of a secret (from value, file, stdin, or random generation).
+- `set-string`: Set a custom (non-standard) string field on a specific entry.
+- `sync`: Sync vault secrets based on a JSON declaration, updating only what differs.
+
+---
+
+## Global Flags
+
+These flags can be applied to nearly any `kpv` command to override the default configuration:
+
+- `-V, --vault string`: The KeePass vault name or path.
+- `-P, --vault-password string`: The KeePass vault password.
+- `-F, --vault-password-file string`: A file containing the KeePass vault password. Can be set with `KPV_PASSWORD_FILE` env var.
+- `--vault-os-secret string`: The OS secret store key to get the KeePass vault password from. Can be set with `KPV_VAULT_OS_SECRET` env var.
