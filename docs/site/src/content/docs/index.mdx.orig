@@ -257,7 +257,7 @@ Below is a complete list of all top-level operations available via `kpv`. Run `k
 - `kpv init`: Initialize a new KeePass vault.
 - `kpv config`: Manage global and local `kpv` configuration.
 - `kpv secrets`: Manage entries and values inside a KeePass vault.
-- `kpv exec`: Execute a command with secrets loaded as environment variables.
+- `kpv exec`: Execute a command with specific secrets loaded as environment variables.
 
 ### Secrets Commands (`kpv secrets`)
 

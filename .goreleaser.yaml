@@ -14,23 +14,76 @@ builds:
     goarch:
       - amd64
       - arm64
-    ignore:
-      - goos: windows
-        goarch: arm64
 archives:
   - format: tar.gz
-    # this name template makes the OS and Arch compatible with the results of `uname -m`
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
+    name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     format_overrides:
       - goos: windows
         format: zip
+nfpms:
+  - id: kpv
+    file_name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    vendor: frostyeti
+    homepage: https://github.com/frostyeti/kpv
+    maintainer: frostyeti <frostyeti@users.noreply.github.com>
+    description: KeePass Vault CLI
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - archlinux
+aurs:
+  - name: kpv-bin
+    homepage: https://github.com/frostyeti/kpv
+    description: KeePass Vault CLI
+    maintainers:
+      - frostyeti <frostyeti@users.noreply.github.com>
+    license: MIT
+brews:
+  - name: kpv
+    repository:
+      owner: frostyeti
+      name: homebrew-tap
+    directory: Formula
+    homepage: https://github.com/frostyeti/kpv
+    description: KeePass Vault CLI
+    license: MIT
+scoops:
+  - name: kpv
+    repository:
+      owner: frostyeti
+      name: scoop-bucket
+    homepage: https://github.com/frostyeti/kpv
+    description: KeePass Vault CLI
+    license: MIT
+chocolateys:
+  - name: kpv
+    owners: frostyeti
+    title: kpv
+    authors: frostyeti
+    project_url: https://github.com/frostyeti/kpv
+    description: KeePass Vault CLI
+    tags: keepass vault cli
+    # skip_publish: true is for chocolatey, it means don't push to chocolatey.org. By default it doesn't anyway unless configured.
+winget:
+  - name: kpv
+    publisher: frostyeti
+    license: MIT
+    short_description: KeePass Vault CLI
+    homepage: https://github.com/frostyeti/kpv
+    skip_upload: true
+    repository:
+      owner: frostyeti
+      name: winget-pkgs
+dockers:
+  - image_templates:
+      - "ghcr.io/frostyeti/kpv:{{ .Version }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
 checksum:
   name_template: 'checksums.txt'
 snapshot:

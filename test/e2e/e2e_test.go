@@ -159,6 +159,57 @@ func TestE2E_SecretsExtended(t *testing.T) {
 	assert.Equal(t, "main-secret\n", stdout)
 }
 
+func TestE2E_Exec(t *testing.T) {
+	binPath := buildBinary(t)
+	vaultDir := t.TempDir()
+	vaultPath := filepath.Join(vaultDir, "test.kdbx")
+	passPath := filepath.Join(vaultDir, "test.key")
+	keyFilePath := filepath.Join(vaultDir, "keys.txt")
+
+	err := os.WriteFile(passPath, []byte("supersecret"), 0600)
+	require.NoError(t, err)
+
+	_, _, err = runCmd(t, binPath, "init", "--vault", vaultPath, "--vault-password-file", passPath)
+	require.NoError(t, err)
+
+	// Set some secrets
+	_, _, err = runCmd(t, binPath, "secrets", "set", "--key", "api-token", "--value", "secret-token", "--vault", vaultPath, "--vault-password-file", passPath)
+	require.NoError(t, err)
+	_, _, err = runCmd(t, binPath, "secrets", "set", "--key", "db-pass", "--value", "secret-db", "--vault", vaultPath, "--vault-password-file", passPath)
+	require.NoError(t, err)
+	_, _, err = runCmd(t, binPath, "secrets", "set", "--key", "ignore-me", "--value", "not-loaded", "--vault", vaultPath, "--vault-password-file", passPath)
+	require.NoError(t, err)
+
+	// 1. Exec with --key loading specific secrets
+	stdout, _, err := runCmd(t, binPath, "exec", "--vault", vaultPath, "--vault-password-file", passPath, "--key", "api-token", "--", "env")
+	require.NoError(t, err)
+	assert.Contains(t, stdout, "API_TOKEN=secret-token")
+	assert.NotContains(t, stdout, "DB_PASS=")
+
+	// 2. Exec with --key multiple times
+	stdout, _, err = runCmd(t, binPath, "exec", "--vault", vaultPath, "--vault-password-file", passPath, "-k", "api-token", "-k", "db-pass", "env")
+	require.NoError(t, err)
+	assert.Contains(t, stdout, "API_TOKEN=secret-token")
+	assert.Contains(t, stdout, "DB_PASS=secret-db")
+	assert.NotContains(t, stdout, "IGNORE_ME=")
+
+	// 3. Exec with --key-file
+	err = os.WriteFile(keyFilePath, []byte("api-token\n# comment\ndb-pass\n"), 0600)
+	require.NoError(t, err)
+	stdout, _, err = runCmd(t, binPath, "exec", "--vault", vaultPath, "--vault-password-file", passPath, "--key-file", keyFilePath, "--", "env")
+	require.NoError(t, err)
+	assert.Contains(t, stdout, "API_TOKEN=secret-token")
+	assert.Contains(t, stdout, "DB_PASS=secret-db")
+	assert.NotContains(t, stdout, "IGNORE_ME=")
+
+	// 4. Exec loading ALL secrets (no keys provided)
+	stdout, _, err = runCmd(t, binPath, "exec", "--vault", vaultPath, "--vault-password-file", passPath, "env")
+	require.NoError(t, err)
+	assert.Contains(t, stdout, "API_TOKEN=secret-token")
+	assert.Contains(t, stdout, "DB_PASS=secret-db")
+	assert.Contains(t, stdout, "IGNORE_ME=not-loaded")
+}
+
 func TestE2E_Config(t *testing.T) {
 	binPath := buildBinary(t)
 	configDir := t.TempDir()
