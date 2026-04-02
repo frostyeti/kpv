@@ -39,23 +39,6 @@ aurs:
     maintainers:
       - frostyeti <frostyeti@users.noreply.github.com>
     license: MIT
-brews:
-  - name: kpv
-    repository:
-      owner: frostyeti
-      name: homebrew-tap
-    directory: Formula
-    homepage: https://github.com/frostyeti/kpv
-    description: KeePass Vault CLI
-    license: MIT
-scoops:
-  - name: kpv
-    repository:
-      owner: frostyeti
-      name: scoop-bucket
-    homepage: https://github.com/frostyeti/kpv
-    description: KeePass Vault CLI
-    license: MIT
 chocolateys:
   - name: kpv
     owners: frostyeti
