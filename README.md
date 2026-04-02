@@ -4,7 +4,21 @@ kpv is a CLI for automating secrets management with KeePass (`.kdbx`) vaults. It
 
 ## Install
 
-Build locally:
+### Script
+
+Linux and macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/frostyeti/kpv/master/eng/scripts/install.sh | bash
+```
+
+Windows:
+
+```powershell
+irm https://raw.githubusercontent.com/frostyeti/kpv/master/eng/scripts/install.ps1 | iex
+```
+
+Or build locally:
 
 ```bash
 mise r build
@@ -47,10 +61,20 @@ Available on all commands (env vars in parentheses):
 - `-P, --vault-password` (`KPV_PASSWORD`): KeePass vault password.
 - `-F, --vault-password-file` (`KPV_PASSWORD_FILE`): Path to file containing the KeePass vault password.
 - `--vault-os-secret` (`KPV_VAULT_OS_SECRET`): OS secret store key used to retrieve the vault password.
+- `--version`: Print the CLI version.
 
 Passwords can also be read from the OS keyring (if previously saved) or a `.key` file in the kpv data directory.
 
 ## Commands
+
+- `kpv get` Alias for `kpv secrets get`.
+- `kpv set` Alias for `kpv secrets set`.
+- `kpv ls` Alias for `kpv secrets ls`.
+- `kpv rm` Alias for `kpv secrets rm`.
+- `kpv ensure` Alias for `kpv secrets ensure`.
+- `kpv version` Print the CLI version.
+- `kpv upgrade [version]` Upgrade kpv in place.
+- `kpv upgrade --prerelease` Include prerelease releases when upgrading.
 
 ### `kpv init`
 
@@ -313,3 +337,41 @@ Notes:
 ## Help
 
 Use `kpv --help` or any subcommand with `--help` for details.
+
+## Shell Completion
+
+### Bash
+
+```bash
+kpv completion bash > /etc/bash_completion.d/kpv
+```
+
+Or for a single session:
+
+```bash
+source <(kpv completion bash)
+```
+
+### Zsh
+
+```zsh
+kpv completion zsh > "${fpath[1]}/_kpv"
+```
+
+Or for a single session:
+
+```zsh
+source <(kpv completion zsh)
+```
+
+### Fish
+
+```fish
+kpv completion fish > ~/.config/fish/completions/kpv.fish
+```
+
+### PowerShell
+
+```powershell
+kpv completion powershell | Out-String | Invoke-Expression
+```

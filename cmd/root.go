@@ -33,6 +33,8 @@ automation access.`,
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	registerRuntimeCommands()
+
 	err := RootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -54,7 +56,10 @@ func init() {
 	vaultOsSecret := os.Getenv("KPV_VAULT_OS_SECRET")
 	flags.String("vault-os-secret", vaultOsSecret, "The OS secret store key to get the KeePass vault password from. Can be set with KPV_VAULT_OS_SECRET env var")
 
-	RootCmd.CompletionOptions.DisableDefaultCmd = true
+	RootCmd.InitDefaultVersionFlag()
+	_ = RootCmd.Flags().MarkHidden("version")
+
+	RootCmd.CompletionOptions.HiddenDefaultCmd = true
 
 	RootCmd.SetHelpCommand(&cobra.Command{
 		Use:    "no-help",
