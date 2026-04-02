@@ -75,15 +75,6 @@ winget:
     repository:
       owner: frostyeti
       name: winget-pkgs
-dockers:
-  - image_templates:
-      - "ghcr.io/frostyeti/kpv:{{ .Version }}-amd64"
-    dockerfile: Dockerfile
-    use: buildx
-    build_flag_templates:
-      - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
-      - "--label=org.opencontainers.image.version={{ .Version }}"
 checksum:
   name_template: 'checksums.txt'
 snapshot:
